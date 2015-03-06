@@ -4,6 +4,10 @@
 
 import HTMLParser
 
+import sys 
+reload(sys) 
+sys.setdefaultencoding('utf8')
+
 class GetFirstUrl_HTMLParser(HTMLParser.HTMLParser):
     
     def __init__(self):
@@ -32,21 +36,28 @@ import urllib
 import get_page
 import re
 
-url = "http://sou.zhaopin.com/"
+def get_first_url():
 
-html = urllib.urlopen(url).read()
+    url = "http://sou.zhaopin.com/"
 
-parser = GetFirstUrl_HTMLParser()
+    html = urllib.urlopen(url).read()
 
-parser.feed(html)
+    parser = GetFirstUrl_HTMLParser()
 
-# 注意'.'和'?'都是正则表达式的特殊符号
-re_url = re.compile(r'^/jobs/searchresult\.ashx\?jl=763&bj=\d+$')
+    parser.feed(html)
 
-filename = '/home/liusic/thesis/data/first_url/'
+    # 注意'.'和'?'都是正则表达式的特殊符号
+    re_url = re.compile(r'^/jobs/searchresult\.ashx\?jl=763&bj=\d+$')
+    
+    filename = '/home/liusic/thesis/data/first_url/'
 
-for (u,j) in zip(parser.href, parser.jobname):
-    if re_url.match(u):
-        j = j.replace('/','|')
-        get_page.get_page("http://sou.zhaopin.com"+u,filename+j+'.html')
-        
+    result_list = [(j.replace('/','|'),"http://sou.zhaopin.com"+u)
+                    for (j,u) in  zip(parser.jobname, parser.href)
+                    if re_url.match(u)]
+
+    return result_list
+
+if __name__=='__main__':
+    result = get_first_url()
+    for (j,u) in result:
+        print('%s:\n%s' % (j,u))
